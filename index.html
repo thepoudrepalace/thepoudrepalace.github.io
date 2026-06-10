@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projects</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;600&family=Cormorant+Garamond:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ivory: #f5f1e6;
+    --ink: #1d1a17;
+    --rose: #c2788a;
+    --rose-deep: #9e5567;
+    --sage: #93a18a;
+    --lavender: #a99bc1;
+    --line: #2a2622;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--ivory);
+    color: var(--ink);
+    font-family: 'Josefin Sans', sans-serif;
+    min-height: 100vh;
+  }
+
+  .frame {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* ── Top lattice border ─────────────────────────── */
+  .lattice {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    padding: 26px 0 0;
+  }
+  .lattice span {
+    width: 11px; height: 11px;
+    background: var(--line);
+  }
+  .lattice span:nth-child(4n)   { background: var(--rose); }
+  .lattice span:nth-child(9)    { background: var(--lavender); }
+
+  /* ── Header ─────────────────────────────────────── */
+  header {
+    text-align: center;
+    padding: 56px 0 40px;
+    position: relative;
+  }
+
+  .rose-motif { margin: 0 auto 30px; display: block; }
+
+  h1 {
+    font-weight: 300;
+    font-size: clamp(1.7rem, 4.5vw, 2.8rem);
+    text-transform: uppercase;
+    letter-spacing: 0.45em;
+    margin-left: 0.45em; /* optically recenter letterspaced text */
+    line-height: 1.5;
+  }
+
+  .subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.25rem;
+    color: var(--rose-deep);
+    margin-top: 14px;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── Rule with squares ──────────────────────────── */
+  .rule {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 36px auto 64px;
+    max-width: 640px;
+  }
+  .rule::before, .rule::after {
+    content: '';
+    flex: 1;
+    height: 2px;
+    background: var(--line);
+  }
+  .rule .squares { display: flex; gap: 8px; }
+  .rule .squares i {
+    width: 8px; height: 8px;
+    background: var(--line);
+  }
+  .rule .squares i:nth-child(2) { background: var(--rose); }
+
+  /* ── Project panels ─────────────────────────────── */
+  .panels {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 36px;
+  }
+
+  .panel {
+    background: #fbf8f0;
+    border: 2px solid var(--line);
+    text-decoration: none;
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    position: relative;
+  }
+  .panel:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 14px 30px rgba(29, 26, 23, 0.16);
+  }
+
+  /* ladder-back chair verticals at top of each panel */
+  .panel .ladder {
+    display: flex;
+    justify-content: center;
+    gap: 9px;
+    padding: 22px 0 0;
+    height: 86px;
+  }
+  .panel .ladder i {
+    width: 3px;
+    background: var(--line);
+  }
+  .panel .ladder i:nth-child(odd)  { height: 64px; }
+  .panel .ladder i:nth-child(even) { height: 44px; }
+  .panel .ladder i.tint { background: var(--accent, var(--rose)); width: 5px; }
+
+  .panel .body {
+    padding: 10px 28px 30px;
+    text-align: center;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel h2 {
+    font-weight: 400;
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    letter-spacing: 0.32em;
+    margin-left: 0.32em;
+    line-height: 1.7;
+    padding-bottom: 14px;
+  }
+
+  .panel .desc {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    line-height: 1.55;
+    color: #5a544c;
+    flex: 1;
+  }
+
+  .panel .enter {
+    margin-top: 24px;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4em;
+    margin-left: 0.4em;
+    color: var(--accent, var(--rose-deep));
+  }
+
+  /* accent bar along panel bottom */
+  .panel::after {
+    content: '';
+    display: block;
+    height: 6px;
+    background: var(--accent, var(--rose));
+  }
+
+  .panel.sage     { --accent: var(--sage); }
+  .panel.lavender { --accent: var(--lavender); }
+
+  .panel.soon {
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  /* ── Footer ─────────────────────────────────────── */
+  footer {
+    margin-top: 80px;
+    text-align: center;
+  }
+  footer .lattice { padding: 0 0 22px; }
+  footer p {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.35em;
+    margin-left: 0.35em;
+    color: #8a8378;
+  }
+</style>
+</head>
+<body>
+
+<div class="frame">
+
+  <div class="lattice" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <header>
+    <!-- Mackintosh rose -->
+    <svg class="rose-motif" width="120" height="120" viewBox="0 0 120 120" aria-hidden="true">
+      <g fill="none" stroke="#9e5567" stroke-width="2">
+        <circle cx="60" cy="52" r="34" fill="#c2788a" fill-opacity="0.25"/>
+        <path d="M60 22 C 40 30, 34 48, 44 62 C 50 72, 70 74, 78 64 C 86 54, 80 40, 68 38 C 58 36, 50 44, 54 54 C 57 61, 66 62, 69 55"/>
+        <path d="M60 22 C 78 28, 88 44, 80 60"/>
+      </g>
+      <!-- leaves -->
+      <g fill="#93a18a">
+        <path d="M28 88 C 36 76, 50 74, 58 80 C 50 90, 36 94, 28 88 Z"/>
+        <path d="M92 88 C 84 76, 70 74, 62 80 C 70 90, 84 94, 92 88 Z"/>
+      </g>
+      <!-- stem squares -->
+      <g fill="#2a2622">
+        <rect x="56" y="98" width="8" height="8"/>
+        <rect x="56" y="110" width="8" height="8" fill="#c2788a"/>
+      </g>
+    </svg>
+
+    <h1>Projects</h1>
+    <p class="subtitle">a small collection of works &amp; experiments</p>
+  </header>
+
+  <div class="rule" aria-hidden="true">
+    <div class="squares"><i></i><i></i><i></i></div>
+  </div>
+
+  <main class="panels">
+
+    <a class="panel" href="./er-scheduler/">
+      <div class="ladder" aria-hidden="true">
+        <i></i><i></i><i class="tint"></i><i></i><i></i>
+      </div>
+      <div class="body">
+        <h2>ER Scheduler</h2>
+        <p class="desc">A tool for arranging emergency department shifts — order from chaos.</p>
+        <p class="enter">Enter →</p>
+      </div>
+    </a>
+
+    <a class="panel sage" href="./games/">
+      <div class="ladder" aria-hidden="true">
+        <i></i><i></i><i class="tint"></i><i></i><i></i>
+      </div>
+      <div class="body">
+        <h2>Games</h2>
+        <p class="desc">Diversions and amusements, played in the browser.</p>
+        <p class="enter">Enter →</p>
+      </div>
+    </a>
+
+    <a class="panel lavender soon" href="#">
+      <div class="ladder" aria-hidden="true">
+        <i></i><i></i><i class="tint"></i><i></i><i></i>
+      </div>
+      <div class="body">
+        <h2>Next Project</h2>
+        <p class="desc">Something not yet imagined.</p>
+        <p class="enter">Coming soon</p>
+      </div>
+    </a>
+
+  </main>
+
+  <footer>
+    <div class="lattice" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+    </div>
+    <p>Made by hand · MMXXVI</p>
+  </footer>
+
+</div>
+
+</body>
+</html>
