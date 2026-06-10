@@ -6,135 +6,113 @@
 <title>Projects</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;600&family=Cormorant+Garamond:ital@0;1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sorts+Mill+Goudy:ital@0;1&display=swap" rel="stylesheet">
 <style>
   :root {
-    --ivory: #f5f1e6;
-    --ink: #1d1a17;
-    --rose: #c2788a;
-    --rose-deep: #9e5567;
-    --sage: #93a18a;
-    --lavender: #a99bc1;
-    --line: #2a2622;
+    --paper: #f0e6cd;        /* warm print paper */
+    --paper-deep: #e7dabb;
+    --key: #4a3526;          /* dark umber keyblock */
+    --terracotta: #bf6444;
+    --ochre: #d49a3a;
+    --gold: #e3b95b;
+    --sage: #8c9a6c;
+    --pinon: #5f7350;
+    --teal: #4f8a88;
+    --sky: #cfae5e;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    background: var(--ivory);
-    color: var(--ink);
-    font-family: 'Josefin Sans', sans-serif;
+    background: var(--paper);
+    color: var(--key);
+    font-family: 'Sorts Mill Goudy', serif;
     min-height: 100vh;
+    /* subtle paper grain */
+    background-image: radial-gradient(rgba(74,53,38,0.045) 1px, transparent 1px);
+    background-size: 5px 5px;
   }
 
   .frame {
-    max-width: 1080px;
-    margin: 0 auto;
-    padding: 0 24px 80px;
+    max-width: 1040px;
+    margin: 36px auto 60px;
+    padding: 0 22px;
   }
 
-  /* ── Top lattice border ─────────────────────────── */
-  .lattice {
-    display: flex;
-    justify-content: center;
-    gap: 14px;
-    padding: 26px 0 0;
-  }
-  .lattice span {
-    width: 11px; height: 11px;
-    background: var(--line);
-  }
-  .lattice span:nth-child(4n)   { background: var(--rose); }
-  .lattice span:nth-child(9)    { background: var(--lavender); }
-
-  /* ── Header ─────────────────────────────────────── */
-  header {
-    text-align: center;
-    padding: 56px 0 40px;
-    position: relative;
+  /* ── Print border, like a woodblock frame ───────── */
+  .plate {
+    border: 3px solid var(--key);
+    outline: 1px solid var(--key);
+    outline-offset: 6px;
+    background: var(--paper);
+    padding-bottom: 48px;
   }
 
-  .rose-motif { margin: 0 auto 30px; display: block; }
+  /* ── Woodcut landscape banner ───────────────────── */
+  .banner { display: block; width: 100%; height: auto; }
+
+  header { text-align: center; padding: 38px 24px 8px; }
 
   h1 {
-    font-weight: 300;
-    font-size: clamp(1.7rem, 4.5vw, 2.8rem);
+    font-weight: 400;
+    font-size: clamp(2rem, 5vw, 3.2rem);
     text-transform: uppercase;
-    letter-spacing: 0.45em;
-    margin-left: 0.45em; /* optically recenter letterspaced text */
-    line-height: 1.5;
+    letter-spacing: 0.3em;
+    margin-left: 0.3em;
+    color: var(--key);
   }
 
   .subtitle {
-    font-family: 'Cormorant Garamond', serif;
     font-style: italic;
     font-size: 1.25rem;
-    color: var(--rose-deep);
-    margin-top: 14px;
-    letter-spacing: 0.08em;
+    color: #7a5b3e;
+    margin-top: 8px;
   }
 
-  /* ── Rule with squares ──────────────────────────── */
+  /* ── Ornament rule ──────────────────────────────── */
   .rule {
     display: flex;
     align-items: center;
-    gap: 16px;
-    margin: 36px auto 64px;
-    max-width: 640px;
+    justify-content: center;
+    gap: 14px;
+    margin: 30px auto 48px;
+    max-width: 520px;
   }
   .rule::before, .rule::after {
     content: '';
     flex: 1;
-    height: 2px;
-    background: var(--line);
+    height: 3px;
+    background: var(--key);
   }
-  .rule .squares { display: flex; gap: 8px; }
-  .rule .squares i {
-    width: 8px; height: 8px;
-    background: var(--line);
-  }
-  .rule .squares i:nth-child(2) { background: var(--rose); }
+  .rule svg { flex: none; }
 
-  /* ── Project panels ─────────────────────────────── */
+  /* ── Project prints ─────────────────────────────── */
   .panels {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 36px;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 34px;
+    padding: 0 44px;
   }
 
   .panel {
-    background: #fbf8f0;
-    border: 2px solid var(--line);
     text-decoration: none;
-    color: var(--ink);
+    color: var(--key);
+    background: var(--paper);
+    border: 3px solid var(--key);
+    box-shadow: 6px 6px 0 var(--key);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
     display: flex;
     flex-direction: column;
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-    position: relative;
   }
   .panel:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 14px 30px rgba(29, 26, 23, 0.16);
+    transform: translate(-3px, -3px);
+    box-shadow: 10px 10px 0 var(--key);
   }
 
-  /* ladder-back chair verticals at top of each panel */
-  .panel .ladder {
-    display: flex;
-    justify-content: center;
-    gap: 9px;
-    padding: 22px 0 0;
-    height: 86px;
-  }
-  .panel .ladder i {
-    width: 3px;
-    background: var(--line);
-  }
-  .panel .ladder i:nth-child(odd)  { height: 64px; }
-  .panel .ladder i:nth-child(even) { height: 44px; }
-  .panel .ladder i.tint { background: var(--accent, var(--rose)); width: 5px; }
+  .panel .print { display: block; width: 100%; height: auto; border-bottom: 3px solid var(--key); }
 
   .panel .body {
-    padding: 10px 28px 30px;
+    padding: 20px 22px 24px;
     text-align: center;
     flex: 1;
     display: flex;
@@ -143,146 +121,187 @@
 
   .panel h2 {
     font-weight: 400;
-    font-size: 1.05rem;
+    font-size: 1.15rem;
     text-transform: uppercase;
-    letter-spacing: 0.32em;
-    margin-left: 0.32em;
-    line-height: 1.7;
-    padding-bottom: 14px;
+    letter-spacing: 0.22em;
+    margin-left: 0.22em;
   }
 
   .panel .desc {
-    font-family: 'Cormorant Garamond', serif;
     font-style: italic;
-    font-size: 1.1rem;
-    line-height: 1.55;
-    color: #5a544c;
+    font-size: 1.05rem;
+    line-height: 1.5;
+    color: #6e543b;
+    margin-top: 10px;
     flex: 1;
   }
 
   .panel .enter {
-    margin-top: 24px;
-    font-size: 0.72rem;
+    margin-top: 18px;
+    font-size: 0.78rem;
     text-transform: uppercase;
-    letter-spacing: 0.4em;
-    margin-left: 0.4em;
-    color: var(--accent, var(--rose-deep));
+    letter-spacing: 0.3em;
+    margin-left: 0.3em;
+    color: var(--terracotta);
   }
 
-  /* accent bar along panel bottom */
-  .panel::after {
-    content: '';
-    display: block;
-    height: 6px;
-    background: var(--accent, var(--rose));
-  }
+  .panel.soon { opacity: 0.55; pointer-events: none; }
 
-  .panel.sage     { --accent: var(--sage); }
-  .panel.lavender { --accent: var(--lavender); }
-
-  .panel.soon {
-    opacity: 0.55;
-    pointer-events: none;
-  }
-
-  /* ── Footer ─────────────────────────────────────── */
+  /* ── Footer with hand-in-heart chop ─────────────── */
   footer {
-    margin-top: 80px;
     text-align: center;
+    margin-top: 52px;
   }
-  footer .lattice { padding: 0 0 22px; }
   footer p {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     text-transform: uppercase;
-    letter-spacing: 0.35em;
-    margin-left: 0.35em;
-    color: #8a8378;
+    letter-spacing: 0.28em;
+    margin-left: 0.28em;
+    color: #8a6c4a;
+    margin-top: 12px;
   }
 </style>
 </head>
 <body>
 
 <div class="frame">
+  <div class="plate">
 
-  <div class="lattice" aria-hidden="true">
-    <span></span><span></span><span></span><span></span><span></span><span></span>
-    <span></span><span></span><span></span><span></span><span></span><span></span>
-    <span></span><span></span><span></span><span></span><span></span>
-  </div>
-
-  <header>
-    <!-- Mackintosh rose -->
-    <svg class="rose-motif" width="120" height="120" viewBox="0 0 120 120" aria-hidden="true">
-      <g fill="none" stroke="#9e5567" stroke-width="2">
-        <circle cx="60" cy="52" r="34" fill="#c2788a" fill-opacity="0.25"/>
-        <path d="M60 22 C 40 30, 34 48, 44 62 C 50 72, 70 74, 78 64 C 86 54, 80 40, 68 38 C 58 36, 50 44, 54 54 C 57 61, 66 62, 69 55"/>
-        <path d="M60 22 C 78 28, 88 44, 80 60"/>
+    <!-- Woodcut landscape: mesa, sun, aspens -->
+    <svg class="banner" viewBox="0 0 1040 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <!-- sky -->
+      <rect width="1040" height="300" fill="#e9c97e"/>
+      <rect width="1040" height="60" fill="#dfb45e"/>
+      <!-- sun -->
+      <circle cx="790" cy="86" r="46" fill="#d96f3f"/>
+      <circle cx="790" cy="86" r="46" fill="none" stroke="#4a3526" stroke-width="4"/>
+      <circle cx="790" cy="86" r="30" fill="#e3b95b"/>
+      <!-- far mesa -->
+      <path d="M0 170 L150 170 L190 130 L430 130 L470 170 L1040 170 L1040 300 L0 300 Z" fill="#b06a8f" opacity="0.55"/>
+      <!-- mid mesa -->
+      <path d="M0 205 L240 205 L300 152 L560 152 L620 205 L820 205 L870 168 L1040 168 L1040 300 L0 300 Z" fill="#bf6444"/>
+      <path d="M0 205 L240 205 L300 152 L560 152 L620 205 L820 205 L870 168 L1040 168" fill="none" stroke="#4a3526" stroke-width="4"/>
+      <!-- foreground field -->
+      <path d="M0 252 C 180 232, 380 268, 560 250 C 740 232, 900 262, 1040 246 L1040 300 L0 300 Z" fill="#8c9a6c"/>
+      <path d="M0 252 C 180 232, 380 268, 560 250 C 740 232, 900 262, 1040 246" fill="none" stroke="#4a3526" stroke-width="4"/>
+      <!-- aspens -->
+      <g stroke="#4a3526" stroke-width="3">
+        <line x1="120" y1="270" x2="120" y2="150" stroke="#efe6cd" stroke-width="9"/>
+        <line x1="120" y1="270" x2="120" y2="150"/>
+        <line x1="168" y1="278" x2="168" y2="138" stroke="#efe6cd" stroke-width="9"/>
+        <line x1="168" y1="278" x2="168" y2="138"/>
+        <line x1="216" y1="272" x2="216" y2="156" stroke="#efe6cd" stroke-width="9"/>
+        <line x1="216" y1="272" x2="216" y2="156"/>
       </g>
-      <!-- leaves -->
-      <g fill="#93a18a">
-        <path d="M28 88 C 36 76, 50 74, 58 80 C 50 90, 36 94, 28 88 Z"/>
-        <path d="M92 88 C 84 76, 70 74, 62 80 C 70 90, 84 94, 92 88 Z"/>
+      <!-- aspen canopies -->
+      <g fill="#d49a3a" stroke="#4a3526" stroke-width="4">
+        <ellipse cx="120" cy="124" rx="40" ry="34"/>
+        <ellipse cx="170" cy="104" rx="46" ry="38"/>
+        <ellipse cx="220" cy="130" rx="38" ry="32"/>
       </g>
-      <!-- stem squares -->
-      <g fill="#2a2622">
-        <rect x="56" y="98" width="8" height="8"/>
-        <rect x="56" y="110" width="8" height="8" fill="#c2788a"/>
+      <!-- piñon shrubs -->
+      <g fill="#5f7350" stroke="#4a3526" stroke-width="3">
+        <ellipse cx="640" cy="262" rx="34" ry="16"/>
+        <ellipse cx="700" cy="274" rx="26" ry="13"/>
+        <ellipse cx="940" cy="266" rx="38" ry="17"/>
       </g>
+      <!-- keyblock bottom edge -->
+      <rect y="294" width="1040" height="6" fill="#4a3526"/>
     </svg>
 
-    <h1>Projects</h1>
-    <p class="subtitle">a small collection of works &amp; experiments</p>
-  </header>
+    <header>
+      <h1>Projects</h1>
+      <p class="subtitle">a small collection of works &amp; experiments</p>
+    </header>
 
-  <div class="rule" aria-hidden="true">
-    <div class="squares"><i></i><i></i><i></i></div>
-  </div>
-
-  <main class="panels">
-
-    <a class="panel" href="./er-scheduler/">
-      <div class="ladder" aria-hidden="true">
-        <i></i><i></i><i class="tint"></i><i></i><i></i>
-      </div>
-      <div class="body">
-        <h2>ER Scheduler</h2>
-        <p class="desc">A tool for arranging emergency department shifts — order from chaos.</p>
-        <p class="enter">Enter →</p>
-      </div>
-    </a>
-
-    <a class="panel sage" href="./games/">
-      <div class="ladder" aria-hidden="true">
-        <i></i><i></i><i class="tint"></i><i></i><i></i>
-      </div>
-      <div class="body">
-        <h2>Games</h2>
-        <p class="desc">Diversions and amusements, played in the browser.</p>
-        <p class="enter">Enter →</p>
-      </div>
-    </a>
-
-    <a class="panel lavender soon" href="#">
-      <div class="ladder" aria-hidden="true">
-        <i></i><i></i><i class="tint"></i><i></i><i></i>
-      </div>
-      <div class="body">
-        <h2>Next Project</h2>
-        <p class="desc">Something not yet imagined.</p>
-        <p class="enter">Coming soon</p>
-      </div>
-    </a>
-
-  </main>
-
-  <footer>
-    <div class="lattice" aria-hidden="true">
-      <span></span><span></span><span></span><span></span><span></span>
-      <span></span><span></span><span></span><span></span>
+    <div class="rule" aria-hidden="true">
+      <svg width="26" height="26" viewBox="0 0 26 26">
+        <rect x="3" y="3" width="20" height="20" transform="rotate(45 13 13)" fill="#bf6444" stroke="#4a3526" stroke-width="2.5"/>
+      </svg>
     </div>
-    <p>Made by hand · MMXXVI</p>
-  </footer>
 
+    <main class="panels">
+
+      <a class="panel" href="./er-scheduler/">
+        <!-- adobe building print -->
+        <svg class="print" viewBox="0 0 300 130" aria-hidden="true">
+          <rect width="300" height="130" fill="#e9c97e"/>
+          <circle cx="248" cy="34" r="20" fill="#d96f3f" stroke="#4a3526" stroke-width="3"/>
+          <path d="M0 96 L300 96 L300 130 L0 130 Z" fill="#8c9a6c"/>
+          <path d="M0 96 L300 96" stroke="#4a3526" stroke-width="3"/>
+          <g stroke="#4a3526" stroke-width="3">
+            <rect x="60" y="46" width="120" height="50" fill="#bf6444"/>
+            <rect x="180" y="62" width="70" height="34" fill="#c97a52"/>
+            <rect x="92" y="66" width="22" height="30" fill="#4f8a88"/>
+            <rect x="136" y="58" width="18" height="14" fill="#4f8a88"/>
+            <rect x="200" y="72" width="16" height="12" fill="#4f8a88"/>
+          </g>
+          <g fill="#4a3526">
+            <rect x="66" y="42" width="6" height="8"/><rect x="86" y="42" width="6" height="8"/>
+            <rect x="106" y="42" width="6" height="8"/><rect x="126" y="42" width="6" height="8"/>
+            <rect x="146" y="42" width="6" height="8"/><rect x="166" y="42" width="6" height="8"/>
+          </g>
+        </svg>
+        <div class="body">
+          <h2>ER Scheduler</h2>
+          <p class="desc">A tool for arranging emergency department shifts — order from chaos.</p>
+          <p class="enter">Enter →</p>
+        </div>
+      </a>
+
+      <a class="panel" href="./games/">
+        <!-- night sky / moon print -->
+        <svg class="print" viewBox="0 0 300 130" aria-hidden="true">
+          <rect width="300" height="130" fill="#3d5a73"/>
+          <circle cx="220" cy="44" r="26" fill="#e3b95b" stroke="#4a3526" stroke-width="3"/>
+          <g fill="#efe6cd">
+            <circle cx="50" cy="30" r="3"/><circle cx="100" cy="52" r="2.5"/>
+            <circle cx="150" cy="24" r="3"/><circle cx="280" cy="70" r="2.5"/>
+            <circle cx="70" cy="74" r="2.5"/>
+          </g>
+          <path d="M0 100 L70 60 L140 100 L210 72 L300 104 L300 130 L0 130 Z" fill="#4a3526"/>
+          <g fill="#5f7350" stroke="#4a3526" stroke-width="3">
+            <path d="M40 130 L58 92 L76 130 Z"/>
+            <path d="M250 130 L266 98 L282 130 Z"/>
+          </g>
+        </svg>
+        <div class="body">
+          <h2>Games</h2>
+          <p class="desc">Diversions and amusements, played in the browser.</p>
+          <p class="enter">Enter →</p>
+        </div>
+      </a>
+
+      <a class="panel soon" href="#">
+        <!-- lone aspen print -->
+        <svg class="print" viewBox="0 0 300 130" aria-hidden="true">
+          <rect width="300" height="130" fill="#dfb45e"/>
+          <path d="M0 104 C 80 92, 200 116, 300 100 L300 130 L0 130 Z" fill="#8c9a6c"/>
+          <path d="M0 104 C 80 92, 200 116, 300 100" stroke="#4a3526" stroke-width="3" fill="none"/>
+          <line x1="150" y1="108" x2="150" y2="44" stroke="#efe6cd" stroke-width="8"/>
+          <line x1="150" y1="108" x2="150" y2="44" stroke="#4a3526" stroke-width="3"/>
+          <ellipse cx="150" cy="36" rx="34" ry="28" fill="#d49a3a" stroke="#4a3526" stroke-width="3"/>
+        </svg>
+        <div class="body">
+          <h2>Next Project</h2>
+          <p class="desc">Something not yet imagined.</p>
+          <p class="enter">Coming soon</p>
+        </div>
+      </a>
+
+    </main>
+
+    <footer>
+      <!-- hand-in-heart chop mark, after Baumann's printer's mark -->
+      <svg width="54" height="54" viewBox="0 0 54 54" aria-hidden="true">
+        <rect x="2" y="2" width="50" height="50" fill="#d96f3f" stroke="#4a3526" stroke-width="3"/>
+        <path d="M27 40 C 14 30, 14 18, 21 16 C 25 15, 27 19, 27 21 C 27 19, 29 15, 33 16 C 40 18, 40 30, 27 40 Z" fill="#efe6cd" stroke="#4a3526" stroke-width="2"/>
+        <path d="M27 36 L27 22 M23 26 L27 22 L31 26" stroke="#4a3526" stroke-width="2" fill="none"/>
+      </svg>
+      <p>Printed by hand · MMXXVI</p>
+    </footer>
+
+  </div>
 </div>
 
 </body>
