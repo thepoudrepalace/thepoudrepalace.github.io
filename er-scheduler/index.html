@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ER Scheduler</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --panel: #ffffff; --ink: #1e2430; --muted: #6b7280;
+    --line: #d9dde3; --accent: #2563eb; --accent-soft: #dbeafe;
+    --danger: #c0392b; --warn: #b45309; --ok: #15803d;
+    --weekend: #eef1f5;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size:14px; }
+  .top {
+    background:var(--panel); border-bottom:1px solid var(--line);
+    padding:10px 18px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    position:sticky; top:0; z-index:20;
+  }
+  .top h1 { font-size:16px; font-weight:600; margin-right:8px; }
+  select, input, button, textarea {
+    font:inherit; color:inherit; border:1px solid var(--line); border-radius:6px;
+    padding:6px 9px; background:#fff;
+  }
+  select:focus, input:focus, textarea:focus { outline:2px solid var(--accent-soft); border-color:var(--accent); }
+  button { cursor:pointer; background:#fff; }
+  button:hover { background:#f3f4f6; }
+  button.primary { background:var(--accent); color:#fff; border-color:var(--accent); font-weight:600; }
+  button.primary:hover { background:#1d4ed8; }
+  button.subtle { border:none; background:none; color:var(--muted); }
+  button.subtle:hover { color:var(--danger); background:none; }
+  .tabs { display:flex; gap:4px; margin-left:auto; }
+  .tabs button { border:none; background:none; padding:8px 14px; border-radius:8px; color:var(--muted); font-weight:600; }
+  .tabs button.active { background:var(--accent-soft); color:var(--accent); }
+  main { max-width:1180px; margin:18px auto 60px; padding:0 18px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px; margin-bottom:18px; }
+  .card h2 { font-size:15px; margin-bottom:12px; }
+  .card h2 .hint { font-weight:400; color:var(--muted); font-size:12.5px; margin-left:8px; }
+  table.grid { border-collapse:collapse; width:100%; }
+  table.grid th, table.grid td { border:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
+  table.grid th { background:#f8fafc; font-size:12px; text-transform:uppercase; letter-spacing:0.04em; color:var(--muted); }
+  .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+  .field { display:flex; flex-direction:column; gap:4px; }
+  .field label { font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; }
+  .chip { display:inline-flex; align-items:center; gap:5px; background:#f1f5f9; border:1px solid var(--line); border-radius:999px; padding:2px 9px; font-size:12.5px; margin:2px 3px 2px 0; }
+  .chip.hard { background:#fee2e2; border-color:#fecaca; }
+  .chip b { font-weight:600; }
+  .chip button { border:none; background:none; padding:0 0 0 2px; color:var(--muted); font-size:13px; }
+  .badge { display:inline-block; padding:1px 7px; border-radius:5px; font-weight:600; font-size:12px; color:#fff; }
+  .doc-detail { background:#f8fafc; border:1px dashed var(--line); border-radius:8px; padding:12px; margin:6px 0 12px; }
+  .doc-detail h4 { font-size:12.5px; margin:10px 0 6px; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; }
+  .doc-detail h4:first-child { margin-top:0; }
+  .dowboxes label { font-size:13px; margin-right:10px; cursor:pointer; text-transform:none; letter-spacing:0; color:var(--ink); }
+  /* calendar */
+  .cal { border-collapse:collapse; width:100%; table-layout:fixed; }
+  .cal th { border:1px solid var(--line); background:#f8fafc; padding:5px; font-size:12px; color:var(--muted); }
+  .cal td { border:1px solid var(--line); vertical-align:top; padding:4px; height:96px; background:#fff; }
+  .cal td.weekend { background:var(--weekend); }
+  .cal td.empty { background:#fafafa; }
+  .cal .dnum { font-size:12px; font-weight:700; color:var(--muted); margin-bottom:3px; }
+  .slot { display:flex; align-items:center; gap:5px; font-size:12px; padding:1px 3px; border-radius:5px; cursor:pointer; }
+  .slot:hover { background:var(--accent-soft); }
+  .slot .t { color:var(--muted); font-size:11px; min-width:38px; }
+  .slot .who { font-weight:700; }
+  .slot.viol { outline:2px solid var(--danger); }
+  .legend { border-collapse:collapse; margin-top:10px; }
+  .legend th, .legend td { border:1px solid var(--line); padding:4px 10px; text-align:center; font-size:12.5px; }
+  .legend th { background:#f8fafc; }
+  .viol-list { color:var(--danger); font-size:13px; margin-top:10px; }
+  .warn-list { color:var(--warn); font-size:13px; margin-top:6px; }
+  /* modal */
+  .overlay { position:fixed; inset:0; background:rgba(20,24,32,0.45); display:flex; align-items:center; justify-content:center; z-index:50; }
+  .modal { background:#fff; border-radius:12px; padding:20px; width:min(480px, 92vw); max-height:84vh; overflow:auto; }
+  .modal h3 { font-size:15px; margin-bottom:12px; }
+  .pick { display:flex; align-items:center; gap:8px; padding:7px 8px; border-radius:8px; cursor:pointer; border:1px solid transparent; }
+  .pick:hover { background:#f3f4f6; }
+  .pick .status { margin-left:auto; font-size:12px; }
+  .pick .status.ok { color:var(--ok); }
+  .pick .status.warn { color:var(--warn); }
+  .pick .status.hard { color:var(--danger); }
+  .muted { color:var(--muted); }
+  .small { font-size:12.5px; }
+  .mt { margin-top:12px; }
+  .hidden { display:none !important; }
+  @media print {
+    .top, .no-print, button { display:none !important; }
+    main { max-width:none; margin:0; }
+    .card { border:none; padding:0; }
+    body { background:#fff; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1>ER Scheduler</h1>
+  <select id="hospitalSelect"></select>
+  <button id="addHospitalBtn">+ Add hospital</button>
+  <button id="exportBtn" title="Download this hospital's setup as a backup file">Export</button>
+  <button id="importBtn" title="Load a hospital backup file">Import</button>
+  <input type="file" id="importFile" accept=".json" class="hidden">
+  <button id="deleteHospitalBtn" class="subtle" title="Delete this hospital">Delete</button>
+  <div class="tabs">
+    <button data-tab="setup" class="active">Setup</button>
+    <button data-tab="month">Month &amp; Vacations</button>
+    <button data-tab="schedule">Schedule</button>
+  </div>
+</div>
+
+<main>
+  <!-- ============ SETUP TAB ============ -->
+  <section id="tab-setup">
+    <div class="card">
+      <h2>Hospital</h2>
+      <div class="row">
+        <div class="field"><label>Name</label><input id="hospName" style="width:220px"></div>
+        <div class="field"><label>Overnight soft cap / doctor / month</label><input id="ruleOvernightCap" type="number" min="0" style="width:90px"></div>
+        <div class="field"><label>Default max consecutive days</label><input id="ruleClusterMax" type="number" min="1" style="width:90px"></div>
+      </div>
+      <p class="small muted mt">Everything on this page is saved automatically in this browser. Use <b>Export</b> for a backup file you can keep or move to another computer.</p>
+    </div>
+
+    <div class="card">
+      <h2>Shifts <span class="hint">one of each is filled every day</span></h2>
+      <table class="grid" id="shiftTable">
+        <thead><tr><th>Name</th><th>Weekday time</th><th>Weekend time</th><th>Next-day rest: blocks which shifts the following day?</th><th>Counts as overnight</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <button id="addShiftBtn" class="mt">+ Add shift</button>
+    </div>
+
+    <div class="card">
+      <h2>Doctors <span class="hint">click a doctor's initials to edit their rules &amp; preferences</span></h2>
+      <table class="grid" id="docTable">
+        <thead><tr><th style="width:90px">Initials</th><th style="width:120px">Target / month</th><th style="width:120px">Hard cap</th><th>Rules &amp; preferences</th><th style="width:36px"></th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <button id="addDocBtn" class="mt">+ Add doctor</button>
+      <p class="small muted mt">Shifts that can't be assigned to anyone go to <b>Relief</b> automatically.</p>
+    </div>
+  </section>
+
+  <!-- ============ MONTH TAB ============ -->
+  <section id="tab-month" class="hidden">
+    <div class="card">
+      <h2>Month</h2>
+      <div class="row">
+        <input type="month" id="monthPick">
+        <button id="generateBtn" class="primary">Generate schedule</button>
+        <span id="genNote" class="small muted"></span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Vacation / unavailable days <span class="hint">days of this month, e.g. “13-18, 26” — saved per month</span></h2>
+      <table class="grid" id="vacTable"><tbody></tbody></table>
+    </div>
+    <div class="card">
+      <h2>Carry-over from previous month <span class="hint">what each doctor worked the last 3 days — keeps rest rules &amp; clusters correct across the boundary</span></h2>
+      <table class="grid" id="carryTable"></table>
+    </div>
+  </section>
+
+  <!-- ============ SCHEDULE TAB ============ -->
+  <section id="tab-schedule" class="hidden">
+    <div class="card">
+      <h2 id="schedTitle">Schedule</h2>
+      <div id="calWrap"><p class="muted">No schedule generated for this month yet — go to “Month &amp; Vacations” and hit Generate.</p></div>
+      <div id="violWrap"></div>
+      <div id="legendWrap"></div>
+      <div class="row mt no-print"><button id="printBtn">Print</button></div>
+    </div>
+  </section>
+</main>
+
+<div id="modalRoot"></div>
+
+<script>
+/* ===================== CORE-START (pure logic, no DOM) ===================== */
+
+const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const RELIEF = 'RELIEF';
+
+function uid() { return Math.random().toString(36).slice(2, 9); }
+
+function daysInMonth(y, m) { return new Date(y, m, 0).getDate(); } // m: 1-12
+function dowOf(y, m, d) { return new Date(y, m - 1, d).getDay(); }
+
+// "13-18, 26" or "9/13-9/20" -> Set of day numbers
+function parseVacations(text, maxDay) {
+  const out = new Set();
+  if (!text) return out;
+  for (let tok of text.split(',')) {
+    tok = tok.trim();
+    if (!tok) continue;
+    tok = tok.replace(/\d+\s*\//g, ''); // strip month prefixes like "9/"
+    const m = tok.match(/^(\d+)\s*-\s*(\d+)$/);
+    if (m) {
+      let a = +m[1], b = +m[2];
+      if (a > b) [a, b] = [b, a];
+      for (let d = a; d <= b; d++) if (d >= 1 && d <= maxDay) out.add(d);
+    } else if (/^\d+$/.test(tok)) {
+      const d = +tok;
+      if (d >= 1 && d <= maxDay) out.add(d);
+    }
+  }
+  return out;
+}
+
+function weekendKey(y, m, d) {
+  const dw = dowOf(y, m, d);
+  if (dw === 6) return `${m}-${d}`;        // Saturday anchors the weekend
+  if (dw === 0) return `${m}-${d - 1}`;    // Sunday belongs to previous Saturday
+  return null;
+}
+
+// Build per-doctor runtime state, seeded with carry-over (array of shiftId|'' for last 3 days of prev month)
+function initDocState(doc, carry, shifts) {
+  const st = { assigned: 0, byShift: {}, lastShiftByDay: {}, weekends: new Set(), clusterLen: 0 };
+  shifts.forEach(s => st.byShift[s.id] = 0);
+  const c = (carry || ['', '', '']).slice(-3);
+  // offsets -3,-2,-1 relative to day 1
+  for (let i = 0; i < 3; i++) {
+    const sid = c[i];
+    if (sid) st.lastShiftByDay[i - 3] = sid;
+  }
+  // cluster ending at day 0 boundary
+  let len = 0;
+  for (let off = -1; off >= -3; off--) {
+    if (st.lastShiftByDay[off]) len++; else break;
+  }
+  st.clusterLen = len;
+  return st;
+}
+
+function hardBlocked(doc, dw, shiftId) {
+  return (doc.blocks || []).some(b => b.hard && b.dow === dw && b.shiftIds.includes(shiftId));
+}
+function softBlocked(doc, dw, shiftId) {
+  return (doc.blocks || []).some(b => !b.hard && b.dow === dw && b.shiftIds.includes(shiftId));
+}
+
+function restViolation(prevShiftId, shiftId, shiftsById) {
+  if (!prevShiftId) return false;
+  const prev = shiftsById[prevShiftId];
+  return !!(prev && (prev.blocksNext || []).includes(shiftId));
+}
+
+// Eligibility for generation (hard checks only). Returns null if ok, else reason string.
+function ineligibleReason(doc, st, day, dw, shift, vac, shiftsById, schedule, opts) {
+  if (vac.has(day)) return 'on vacation';
+  if (st.lastShiftByDay[day] !== undefined) return 'already working this day';
+  if (hardBlocked(doc, dw, shift.id)) return `blocked: no ${shift.name} on ${DOW[dw]}`;
+  if (restViolation(st.lastShiftByDay[day - 1], shift.id, shiftsById)) return 'rest rule (previous day shift)';
+  // next-day check (matters when editing into an existing schedule)
+  const next = st.lastShiftByDay[day + 1];
+  if (next && restViolation(shift.id, next, shiftsById)) return 'rest rule (next day shift)';
+  if (!opts.ignoreCaps) {
+    const cap = (doc.cap != null && doc.cap !== '') ? +doc.cap : (doc.target != null ? +doc.target : null);
+    if (cap != null && st.assigned >= cap) return 'at shift cap';
+  }
+  return null;
+}
+
+function scoreCandidate(doc, st, day, dw, shift, hosp, totalDays, meanWeekendsSoFar) {
+  let s = 0;
+  const target = +doc.target || 10;
+  // pace toward target
+  const expected = target * (day / totalDays);
+  s += (expected - st.assigned) * 30;
+  // clustering
+  const workedYesterday = !!st.lastShiftByDay[day - 1];
+  const cmax = (doc.clusterMax != null && doc.clusterMax !== '') ? +doc.clusterMax : (+hosp.rules.defaultClusterMax || 4);
+  const cideal = (doc.clusterIdeal != null && doc.clusterIdeal !== '') ? +doc.clusterIdeal : null;
+  if (workedYesterday) {
+    const newLen = st.clusterLen + 1;
+    if (newLen > cmax) s -= 220;
+    else if (cideal && newLen > cideal) s -= 20;
+    else s += 15;
+  }
+  // soft day-of-week blocks / avoid days
+  if (softBlocked(doc, dw, shift.id)) s -= 35;
+  if ((doc.preferDays || []).includes(dw)) s += 8;
+  // overnight soft cap
+  if (shift.isOvernight) {
+    const capON = +hosp.rules.overnightSoftCap || 0;
+    if (capON && st.byShift[shift.id] >= capON) s -= 70 * (st.byShift[shift.id] - capON + 1);
+  }
+  // weekends
+  const wkey = weekendKey(...hosp._ymd, day);
+  if (wkey !== null) {
+    s -= Math.max(0, st.weekends.size - meanWeekendsSoFar) * 6;
+    if (doc.altWeekendsOff) {
+      const [m, sat] = wkey.split('-').map(Number);
+      const prevKey = `${m}-${sat - 7}`;
+      if (st.weekends.has(prevKey) || st._carryWeekend) s -= 40;
+    }
+  }
+  s += Math.random() * 3;
+  return s;
+}
+
+function applyAssignment(st, day, shift, hosp) {
+  st.assigned++;
+  st.byShift[shift.id] = (st.byShift[shift.id] || 0) + 1;
+  st.lastShiftByDay[day] = shift.id;
+  st.clusterLen = st.lastShiftByDay[day - 1] !== undefined && day > 0 ? st.clusterLen + 1 : 1;
+  const wkey = weekendKey(...hosp._ymd, day);
+  if (wkey) st.weekends.add(wkey);
+}
+
+function generateSchedule(hosp, ym) {
+  const [y, m] = ym.split('-').map(Number);
+  hosp._ymd = [y, m];
+  const total = daysInMonth(y, m);
+  const month = hosp.months[ym] || { vacations: {}, carryover: {} };
+  const shifts = hosp.shifts;
+  const shiftsById = Object.fromEntries(shifts.map(s => [s.id, s]));
+  const docs = hosp.doctors;
+  const vacs = {}, states = {};
+  for (const d of docs) {
+    vacs[d.id] = parseVacations(month.vacations[d.id], total);
+    states[d.id] = initDocState(d, (month.carryover || {})[d.id], shifts);
+  }
+  const schedule = {};
+  for (let day = 1; day <= total; day++) {
+    const dw = dowOf(y, m, day);
+    const meanWk = docs.length ? docs.reduce((a, d) => a + states[d.id].weekends.size, 0) / docs.length : 0;
+    for (const shift of shifts) {
+      let best = null, bestScore = -Infinity;
+      for (const doc of docs) {
+        const st = states[doc.id];
+        if (ineligibleReason(doc, st, day, dw, shift, vacs[doc.id], shiftsById, schedule, {})) continue;
+        const sc = scoreCandidate(doc, st, day, dw, shift, hosp, total, meanWk);
+        if (sc > bestScore) { bestScore = sc; best = doc; }
+      }
+      if (best) {
+        schedule[day + '|' + shift.id] = best.id;
+        applyAssignment(states[best.id], day, shift, hosp);
+      } else {
+        schedule[day + '|' + shift.id] = RELIEF;
+      }
+    }
+    // recompute cluster lengths for docs who were off today
+    for (const doc of docs) {
+      const st = states[doc.id];
+      if (st.lastShiftByDay[day] === undefined) st.clusterLen = 0;
+    }
+  }
+  return schedule;
+}
+
+// Full validation of an existing schedule. Returns {errors:[], warnings:[]}
+function validateSchedule(hosp, ym, schedule) {
+  const [y, m] = ym.split('-').map(Number);
+  const total = daysInMonth(y, m);
+  const month = hosp.months[ym] || { vacations: {}, carryover: {} };
+  const shiftsById = Object.fromEntries(hosp.shifts.map(s => [s.id, s]));
+  const docsById = Object.fromEntries(hosp.doctors.map(d => [d.id, d]));
+  const errors = [], warnings = [];
+  // per doctor day map (with carryover)
+  const dayMap = {};
+  for (const d of hosp.doctors) {
+    dayMap[d.id] = {};
+    const c = ((month.carryover || {})[d.id] || []).slice(-3);
+    for (let i = 0; i < 3; i++) if (c[i]) dayMap[d.id][i - 3] = c[i];
+  }
+  for (const key of Object.keys(schedule)) {
+    const [dStr, sid] = key.split('|');
+    const day = +dStr, who = schedule[key];
+    if (who === RELIEF || !docsById[who]) continue;
+    if (dayMap[who][day] !== undefined) errors.push(`${docsById[who].initials}: double-booked on ${m}/${day}`);
+    dayMap[who][day] = sid;
+  }
+  for (const d of hosp.doctors) {
+    const vac = parseVacations(month.vacations[d.id], total);
+    const map = dayMap[d.id];
+    let count = 0, byShift = {}, onCount = 0;
+    for (let day = 1; day <= total; day++) {
+      const sid = map[day];
+      if (!sid) continue;
+      count++; byShift[sid] = (byShift[sid] || 0) + 1;
+      if (shiftsById[sid] && shiftsById[sid].isOvernight) onCount++;
+      const dw = dowOf(y, m, day);
+      if (vac.has(day)) errors.push(`${d.initials}: scheduled ${m}/${day} during vacation`);
+      if (hardBlocked(d, dw, sid)) errors.push(`${d.initials}: ${shiftsById[sid].name} on ${DOW[dw]} ${m}/${day} violates a hard rule`);
+      const prev = map[day - 1];
+      if (prev && restViolation(prev, sid, shiftsById)) errors.push(`${d.initials}: ${shiftsById[prev].name} → ${shiftsById[sid].name} on ${m}/${day} violates the rest rule`);
+    }
+    const cap = (d.cap != null && d.cap !== '') ? +d.cap : null;
+    if (cap != null && count > cap) errors.push(`${d.initials}: ${count} shifts exceeds hard cap of ${cap}`);
+    const capON = +hosp.rules.overnightSoftCap || 0;
+    if (capON && onCount > capON) warnings.push(`${d.initials}: ${onCount} overnights (soft cap ${capON})`);
+    // clusters
+    const cmax = (d.clusterMax != null && d.clusterMax !== '') ? +d.clusterMax : (+hosp.rules.defaultClusterMax || 4);
+    let run = 0;
+    for (let day = -2; day <= total; day++) {
+      if (map[day] !== undefined) { run++; if (run === cmax + 1) warnings.push(`${d.initials}: more than ${cmax} days in a row around ${m}/${Math.max(1, day)}`); }
+      else run = 0;
+    }
+    const tgt = +d.target || 0;
+    if (tgt && count !== tgt) warnings.push(`${d.initials}: ${count} shifts (target ${tgt})`);
+  }
+  return { errors, warnings };
+}
+
+/* ===================== CORE-END ===================== */
+
+/* ===================== App state & seed ===================== */
+const LS_KEY = 'er-scheduler-v1';
+const PALETTE = ['#2563eb','#d97706','#15803d','#b91c1c','#7c3aed','#0e7490','#be185d','#4d7c0f','#92400e','#1e40af','#6d28d9','#047857'];
+
+function makeShifts() {
+  return [
+    { id: 'day', name: 'Day', time: '6:30a', weekendTime: '', blocksNext: [], isOvernight: false },
+    { id: 'swing', name: 'Swing', time: '12p', weekendTime: '10a', blocksNext: ['day'], isOvernight: false },
+    { id: 'on', name: 'Overnight', time: '6:30p', blocksNext: ['day', 'swing'], weekendTime: '', isOvernight: true },
+  ];
+}
+
+function boulderSeed() {
+  const D = (initials, target, cap, extra) => Object.assign(
+    { id: uid(), initials, target, cap: cap ?? '', blocks: [], preferDays: [], clusterMax: '', clusterIdeal: '', altWeekendsOff: false }, extra || {});
+  return {
+    id: uid(),
+    name: 'Boulder',
+    shifts: makeShifts(),
+    rules: { overnightSoftCap: 4, defaultClusterMax: 4 },
+    doctors: [
+      D('SB', 11, '', { clusterIdeal: 3 }),
+      D('CG', 11, '', { clusterMax: 2 }),
+      D('MM', 11, '', { blocks: [{ dow: 2, shiftIds: ['day','swing','on'], hard: false }] }),
+      D('AL', 11, 11, { blocks: [
+          { dow: 4, shiftIds: ['on'], hard: true },
+          { dow: 5, shiftIds: ['day','swing'], hard: true },
+          { dow: 6, shiftIds: ['on'], hard: false },
+          { dow: 0, shiftIds: ['on'], hard: false } ] }),
+      D('CB', 10, 10, { blocks: [
+          { dow: 6, shiftIds: ['on'], hard: true },
+          { dow: 0, shiftIds: ['day','swing'], hard: true } ] }),
+      D('LS', 11, '', {}),
+      D('HR', 11, '', { altWeekendsOff: true, preferDays: [1,3,5], blocks: [
+          { dow: 3, shiftIds: ['on'], hard: true },
+          { dow: 4, shiftIds: ['day','swing'], hard: true } ] }),
+      D('EV', 11, '', { clusterIdeal: 3 }),
+    ],
+    months: {},
+  };
+}
+
+let state = null;
+function load() {
+  try { state = JSON.parse(localStorage.getItem(LS_KEY)); } catch (e) { state = null; }
+  if (!state || !state.hospitals || !Object.keys(state.hospitals).length) {
+    const b = boulderSeed();
+    state = { hospitals: { [b.id]: b }, currentId: b.id, currentMonth: defaultMonth() };
+  }
+  if (!state.currentMonth) state.currentMonth = defaultMonth();
+  if (!state.hospitals[state.currentId]) state.currentId = Object.keys(state.hospitals)[0];
+}
+function save() { localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+function defaultMonth() {
+  const n = new Date(); const next = new Date(n.getFullYear(), n.getMonth() + 1, 1);
+  return next.getFullYear() + '-' + String(next.getMonth() + 1).padStart(2, '0');
+}
+function hosp() { return state.hospitals[state.currentId]; }
+function monthData(create) {
+  const h = hosp(), ym = state.currentMonth;
+  if (!h.months[ym] && create) h.months[ym] = { vacations: {}, carryover: {}, schedule: null };
+  return h.months[ym] || { vacations: {}, carryover: {}, schedule: null };
+}
+function docColor(i) { return PALETTE[i % PALETTE.length]; }
+
+/* ===================== UI ===================== */
+const $ = id => document.getElementById(id);
+
+function renderAll() {
+  renderHospitalSelect();
+  renderSetup();
+  renderMonth();
+  renderSchedule();
+}
+
+function renderHospitalSelect() {
+  const sel = $('hospitalSelect');
+  sel.innerHTML = '';
+  for (const id of Object.keys(state.hospitals)) {
+    const o = document.createElement('option');
+    o.value = id; o.textContent = state.hospitals[id].name || '(unnamed)';
+    if (id === state.currentId) o.selected = true;
+    sel.appendChild(o);
+  }
+}
+
+/* ---------- Setup tab ---------- */
+function renderSetup() {
+  const h = hosp();
+  $('hospName').value = h.name;
+  $('ruleOvernightCap').value = h.rules.overnightSoftCap;
+  $('ruleClusterMax').value = h.rules.defaultClusterMax;
+
+  // shifts
+  const tb = $('shiftTable').querySelector('tbody');
+  tb.innerHTML = '';
+  h.shifts.forEach((s, i) => {
+    const tr = document.createElement('tr');
+    const blockOpts = h.shifts.filter(x => x.id !== s.id).map(x =>
+      `<label style="margin-right:10px"><input type="checkbox" data-bn="${x.id}" ${ (s.blocksNext||[]).includes(x.id) ? 'checked' : ''}> ${x.name}</label>`).join('');
+    tr.innerHTML = `
+      <td><input value="${esc(s.name)}" data-f="name" style="width:110px"></td>
+      <td><input value="${esc(s.time||'')}" data-f="time" style="width:80px"></td>
+      <td><input value="${esc(s.weekendTime||'')}" data-f="weekendTime" placeholder="same" style="width:80px"></td>
+      <td>${blockOpts || '<span class="muted small">—</span>'}</td>
+      <td style="text-align:center"><input type="checkbox" data-f="isOvernight" ${s.isOvernight?'checked':''}></td>
+      <td><button class="subtle" data-del="1" title="Remove shift">✕</button></td>`;
+    tr.querySelectorAll('input[data-f]').forEach(inp => inp.addEventListener('change', () => {
+      if (inp.dataset.f === 'isOvernight') s.isOvernight = inp.checked; else s[inp.dataset.f] = inp.value;
+      save();
+    }));
+    tr.querySelectorAll('input[data-bn]').forEach(inp => inp.addEventListener('change', () => {
+      s.blocksNext = s.blocksNext || [];
+      if (inp.checked) { if (!s.blocksNext.includes(inp.dataset.bn)) s.blocksNext.push(inp.dataset.bn); }
+      else s.blocksNext = s.blocksNext.filter(x => x !== inp.dataset.bn);
+      save();
+    }));
+    tr.querySelector('[data-del]').addEventListener('click', () => {
+      if (!confirm(`Remove shift "${s.name}"?`)) return;
+      h.shifts.splice(i, 1); save(); renderSetup();
+    });
+    tb.appendChild(tr);
+  });
+
+  // doctors
+  const db = $('docTable').querySelector('tbody');
+  db.innerHTML = '';
+  h.doctors.forEach((d, i) => {
+    const tr = document.createElement('tr');
+    const summary = docRuleSummary(h, d);
+    tr.innerHTML = `
+      <td><span class="badge" style="background:${docColor(i)};cursor:pointer" data-open="1">${esc(d.initials)}</span></td>
+      <td><input type="number" min="0" value="${d.target}" data-f="target" style="width:70px"></td>
+      <td><input type="number" min="0" value="${d.cap ?? ''}" data-f="cap" placeholder="—" style="width:70px"></td>
+      <td class="small">${summary || '<span class="muted">none — click initials to add</span>'}</td>
+      <td><button class="subtle" data-del="1" title="Remove doctor">✕</button></td>`;
+    tr.querySelectorAll('input[data-f]').forEach(inp => inp.addEventListener('change', () => { d[inp.dataset.f] = inp.value; save(); }));
+    tr.querySelector('[data-open]').addEventListener('click', () => openDocEditor(d, i));
+    tr.querySelector('[data-del]').addEventListener('click', () => {
+      if (!confirm(`Remove ${d.initials}?`)) return;
+      h.doctors.splice(i, 1); save(); renderSetup(); renderMonth();
+    });
+    db.appendChild(tr);
+  });
+}
+
+function docRuleSummary(h, d) {
+  const byId = Object.fromEntries(h.shifts.map(s => [s.id, s.name]));
+  const bits = [];
+  for (const b of d.blocks || []) bits.push(`<span class="chip ${b.hard?'hard':''}">${b.hard?'✕':'~'} ${DOW[b.dow]} ${b.shiftIds.map(x=>byId[x]||x).join('/')}</span>`);
+  if ((d.preferDays||[]).length) bits.push(`<span class="chip">★ prefers ${d.preferDays.map(x=>DOW[x]).join(', ')}</span>`);
+  if (d.clusterMax !== '' && d.clusterMax != null) bits.push(`<span class="chip">≤${d.clusterMax} in a row</span>`);
+  if (d.clusterIdeal !== '' && d.clusterIdeal != null) bits.push(`<span class="chip">likes ${d.clusterIdeal} in a row</span>`);
+  if (d.altWeekendsOff) bits.push(`<span class="chip">every other weekend off</span>`);
+  return bits.join(' ');
+}
+
+function openDocEditor(d, idx) {
+  const h = hosp();
+  const shiftChecks = sel => h.shifts.map(s => `<label style="margin-right:10px"><input type="checkbox" data-nbs="${s.id}"> ${s.name}</label>`).join('');
+  const modal = showModal(`
+    <h3>Doctor: <input id="deInitials" value="${esc(d.initials)}" style="width:80px"></h3>
+    <div class="doc-detail">
+      <h4>Day-of-week restrictions <span class="muted" style="text-transform:none">(✕ hard = never &nbsp;·&nbsp; ~ soft = avoid if possible)</span></h4>
+      <div id="deChips">${docRuleSummary(h, d) || '<span class="muted small">none yet</span>'}</div>
+      <div class="row mt">
+        <select id="deDow">${DOW.map((n,i)=>`<option value="${i}">${n}</option>`).join('')}</select>
+        <span class="dowboxes">${shiftChecks()}</span>
+        <label class="small"><input type="checkbox" id="deHard"> hard rule</label>
+        <button id="deAddBlock">Add</button>
+      </div>
+      <h4>Preferred work days <span class="muted" style="text-transform:none">(soft)</span></h4>
+      <div class="dowboxes">${DOW.map((n,i)=>`<label><input type="checkbox" data-pd="${i}" ${(d.preferDays||[]).includes(i)?'checked':''}> ${n}</label>`).join('')}</div>
+      <h4>Clustering &amp; weekends</h4>
+      <div class="row">
+        <div class="field"><label>Max in a row (blank = default)</label><input id="deCMax" type="number" min="1" value="${d.clusterMax ?? ''}" style="width:80px"></div>
+        <div class="field"><label>Ideal run length (blank = none)</label><input id="deCIdeal" type="number" min="1" value="${d.clusterIdeal ?? ''}" style="width:80px"></div>
+        <label class="small" style="margin-top:14px"><input type="checkbox" id="deAltWk" ${d.altWeekendsOff?'checked':''}> every other weekend off</label>
+      </div>
+    </div>
+    <div class="row" style="justify-content:flex-end"><button id="deDone" class="primary">Done</button></div>
+  `);
+  const refreshChips = () => {
+    modal.querySelector('#deChips').innerHTML = docRuleSummary(h, d) || '<span class="muted small">none yet</span>';
+    modal.querySelectorAll('#deChips .chip button').forEach(()=>{});
+  };
+  modal.querySelector('#deAddBlock').addEventListener('click', () => {
+    const dow = +modal.querySelector('#deDow').value;
+    const ids = [...modal.querySelectorAll('[data-nbs]')].filter(c => c.checked).map(c => c.dataset.nbs);
+    if (!ids.length) { alert('Pick at least one shift.'); return; }
+    d.blocks = d.blocks || [];
+    d.blocks.push({ dow, shiftIds: ids, hard: modal.querySelector('#deHard').checked });
+    save(); refreshChips();
+    modal.querySelectorAll('[data-nbs]').forEach(c => c.checked = false);
+  });
+  // chip removal: rebuild chips with delete buttons instead
+  const chipWrap = modal.querySelector('#deChips');
+  chipWrap.addEventListener('click', e => {
+    // clicking a chip removes it (simplest reliable UX)
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    const all = [...chipWrap.querySelectorAll('.chip')];
+    const ci = all.indexOf(chip);
+    // chips render blocks first, then derived ones; only allow removing block chips
+    if (ci < (d.blocks || []).length) {
+      d.blocks.splice(ci, 1); save(); refreshChips();
+    }
+  });
+  modal.querySelectorAll('[data-pd]').forEach(c => c.addEventListener('change', () => {
+    d.preferDays = [...modal.querySelectorAll('[data-pd]')].filter(x => x.checked).map(x => +x.dataset.pd);
+    save();
+  }));
+  modal.querySelector('#deCMax').addEventListener('change', e => { d.clusterMax = e.target.value; save(); });
+  modal.querySelector('#deCIdeal').addEventListener('change', e => { d.clusterIdeal = e.target.value; save(); });
+  modal.querySelector('#deAltWk').addEventListener('change', e => { d.altWeekendsOff = e.target.checked; save(); });
+  modal.querySelector('#deInitials').addEventListener('change', e => { d.initials = e.target.value.trim() || d.initials; save(); });
+  modal.querySelector('#deDone').addEventListener('click', () => { closeModal(); renderSetup(); });
+}
+
+/* ---------- Month tab ---------- */
+function renderMonth() {
+  const h = hosp();
+  $('monthPick').value = state.currentMonth;
+  const md = monthData(false);
+  const [y, m] = state.currentMonth.split('-').map(Number);
+
+  const vt = $('vacTable').querySelector('tbody');
+  vt.innerHTML = '';
+  h.doctors.forEach((d, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="width:80px"><span class="badge" style="background:${docColor(i)}">${esc(d.initials)}</span></td>
+      <td><input style="width:100%" placeholder="e.g. 13-18, 26" value="${esc((md.vacations||{})[d.id]||'')}"></td>`;
+    tr.querySelector('input').addEventListener('change', e => {
+      const mm = monthData(true);
+      mm.vacations[d.id] = e.target.value; save();
+    });
+    vt.appendChild(tr);
+  });
+
+  // carryover grid: last 3 days of previous month
+  const prev = new Date(y, m - 2, 1);
+  const py = prev.getFullYear(), pm = prev.getMonth() + 1, pTotal = daysInMonth(py, pm);
+  const ct = $('carryTable');
+  let head = `<tr><th style="width:80px">Doctor</th>`;
+  for (let i = 2; i >= 0; i--) head += `<th>${pm}/${pTotal - i} (${DOW[dowOf(py, pm, pTotal - i)]})</th>`;
+  head += '</tr>';
+  let rows = '';
+  h.doctors.forEach((d, i) => {
+    const c = ((md.carryover || {})[d.id] || ['', '', '']);
+    let cells = '';
+    for (let k = 0; k < 3; k++) {
+      const opts = ['<option value="">Off</option>'].concat(h.shifts.map(s => `<option value="${s.id}" ${c[k]===s.id?'selected':''}>${s.name}</option>`)).join('');
+      cells += `<td><select data-doc="${d.id}" data-k="${k}" style="width:100%">${opts}</select></td>`;
+    }
+    rows += `<tr><td><span class="badge" style="background:${docColor(i)}">${esc(d.initials)}</span></td>${cells}</tr>`;
+  });
+  ct.innerHTML = `<thead>${head}</thead><tbody>${rows}</tbody>`;
+  ct.className = 'grid';
+  ct.querySelectorAll('select').forEach(sel => sel.addEventListener('change', () => {
+    const mm = monthData(true);
+    mm.carryover[sel.dataset.doc] = mm.carryover[sel.dataset.doc] || ['', '', ''];
+    mm.carryover[sel.dataset.doc][+sel.dataset.k] = sel.value;
+    save();
+  }));
+
+  $('genNote').textContent = md.schedule ? 'A schedule already exists for this month — Generate will replace it (manual edits included).' : '';
+}
+
+/* ---------- Schedule tab ---------- */
+function renderSchedule() {
+  const h = hosp();
+  const ym = state.currentMonth;
+  const [y, m] = ym.split('-').map(Number);
+  h._ymd = [y, m];
+  const md = monthData(false);
+  const monthName = new Date(y, m - 1, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+  $('schedTitle').textContent = `${h.name} — ${monthName}`;
+  const wrap = $('calWrap'), legendWrap = $('legendWrap'), violWrap = $('violWrap');
+  legendWrap.innerHTML = ''; violWrap.innerHTML = '';
+  if (!md.schedule) {
+    wrap.innerHTML = '<p class="muted">No schedule generated for this month yet — go to “Month &amp; Vacations” and hit Generate.</p>';
+    return;
+  }
+  const total = daysInMonth(y, m);
+  const firstDow = dowOf(y, m, 1);
+  const docsById = Object.fromEntries(h.doctors.map((d, i) => [d.id, { ...d, color: docColor(i) }]));
+  const { errors, warnings } = validateSchedule(h, ym, md.schedule);
+  const errKeys = new Set(); // mark cells: rough match by doc+day
+  // build calendar
+  let html = '<table class="cal"><thead><tr>' + DOW.map(d => `<th>${d}</th>`).join('') + '</tr></thead><tbody><tr>';
+  for (let i = 0; i < firstDow; i++) html += '<td class="empty"></td>';
+  for (let day = 1; day <= total; day++) {
+    const dw = dowOf(y, m, day);
+    if (day > 1 && dw === 0) html += '</tr><tr>';
+    const wkend = (dw === 0 || dw === 6);
+    let cell = `<div class="dnum">${day}</div>`;
+    for (const s of h.shifts) {
+      const who = md.schedule[day + '|' + s.id];
+      const doc = who === RELIEF ? null : docsById[who];
+      const label = doc ? doc.initials : 'Relief';
+      const color = doc ? doc.color : '#64748b';
+      const time = (wkend && s.weekendTime) ? s.weekendTime : s.time;
+      cell += `<div class="slot" data-day="${day}" data-shift="${s.id}" title="${s.name} — click to change">
+        <span class="t">${esc(time || s.name)}</span><span class="who" style="color:${color}">${esc(label)}</span></div>`;
+    }
+    html += `<td class="${wkend ? 'weekend' : ''}">${cell}</td>`;
+  }
+  const lastDow = dowOf(y, m, total);
+  for (let i = lastDow + 1; i <= 6; i++) html += '<td class="empty"></td>';
+  html += '</tr></tbody></table>';
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('.slot').forEach(el => el.addEventListener('click', () => openReassign(+el.dataset.day, el.dataset.shift)));
+
+  // legend
+  let lg = '<table class="legend"><tr><th></th>';
+  const cols = [...h.doctors.map((d, i) => ({ id: d.id, label: d.initials, color: docColor(i) })), { id: RELIEF, label: 'Relief', color: '#64748b' }];
+  for (const c of cols) lg += `<th><span class="badge" style="background:${c.color}">${esc(c.label)}</span></th>`;
+  lg += '</tr>';
+  const counts = {};
+  cols.forEach(c => counts[c.id] = { total: 0 });
+  for (const key of Object.keys(md.schedule)) {
+    const [, sid] = key.split('|'); const who = md.schedule[key];
+    const bucket = counts[who] || (counts[who] = { total: 0 });
+    bucket[sid] = (bucket[sid] || 0) + 1; bucket.total++;
+  }
+  for (const s of h.shifts) {
+    lg += `<tr><th style="text-align:left">${esc(s.name)}</th>`;
+    for (const c of cols) lg += `<td>${(counts[c.id] && counts[c.id][s.id]) || 0}</td>`;
+    lg += '</tr>';
+  }
+  lg += '<tr><th style="text-align:left">Total</th>';
+  for (const c of cols) lg += `<td><b>${(counts[c.id] && counts[c.id].total) || 0}</b></td>`;
+  lg += '</tr></table>';
+  legendWrap.innerHTML = lg;
+
+  if (errors.length) violWrap.innerHTML += `<div class="viol-list"><b>Rule violations:</b><br>${errors.map(esc).join('<br>')}</div>`;
+  if (warnings.length) violWrap.innerHTML += `<div class="warn-list"><b>Notes:</b><br>${warnings.map(esc).join('<br>')}</div>`;
+}
+
+function openReassign(day, shiftId) {
+  const h = hosp(); const ym = state.currentMonth;
+  const [y, m] = ym.split('-').map(Number);
+  const md = monthData(true);
+  const total = daysInMonth(y, m);
+  const dw = dowOf(y, m, day);
+  const shift = h.shifts.find(s => s.id === shiftId);
+  const shiftsById = Object.fromEntries(h.shifts.map(s => [s.id, s]));
+  const current = md.schedule[day + '|' + shiftId];
+
+  // build day maps to evaluate candidates
+  const dayMap = {};
+  for (const d of h.doctors) {
+    dayMap[d.id] = {};
+    const c = ((md.carryover || {})[d.id] || []).slice(-3);
+    for (let i = 0; i < 3; i++) if (c[i]) dayMap[d.id][i - 3] = c[i];
+  }
+  for (const key of Object.keys(md.schedule)) {
+    const [dStr, sid] = key.split('|');
+    const who = md.schedule[key];
+    if (who !== RELIEF && dayMap[who]) dayMap[who][+dStr] = sid;
+  }
+
+  const rows = h.doctors.map((d, i) => {
+    const vac = parseVacations((md.vacations || {})[d.id], total);
+    const map = dayMap[d.id];
+    const problems = [], hard = [];
+    if (d.id !== current) {
+      if (vac.has(day)) hard.push('on vacation');
+      if (map[day] !== undefined && d.id !== current) hard.push('already working this day');
+      if (hardBlocked(d, dw, shiftId)) hard.push(`never works ${shift.name} on ${DOW[dw]}`);
+      if (map[day - 1] && restViolation(map[day - 1], shiftId, shiftsById)) hard.push('rest rule vs previous day');
+      if (map[day + 1] && restViolation(shiftId, map[day + 1], shiftsById)) hard.push('rest rule vs next day');
+      const count = Object.keys(map).filter(k => +k >= 1).length;
+      const cap = (d.cap !== '' && d.cap != null) ? +d.cap : null;
+      if (cap != null && count + 1 > cap) hard.push(`would exceed hard cap (${cap})`);
+      if (softBlocked(d, dw, shiftId)) problems.push(`prefers not to work ${shift.name} on ${DOW[dw]}`);
+      const tgt = +d.target || 0;
+      if (tgt && count + 1 > tgt) problems.push(`would be over target (${tgt})`);
+    }
+    const status = d.id === current ? '<span class="status ok">current</span>'
+      : hard.length ? `<span class="status hard">✕ ${esc(hard[0])}</span>`
+      : problems.length ? `<span class="status warn">⚠ ${esc(problems[0])}</span>`
+      : '<span class="status ok">✓ ok</span>';
+    return `<div class="pick" data-id="${d.id}" data-hard="${hard.length}" data-warn="${problems.length}">
+      <span class="badge" style="background:${docColor(i)}">${esc(d.initials)}</span> ${status}</div>`;
+  }).join('');
+
+  const modal = showModal(`
+    <h3>${esc(shift.name)} — ${m}/${day} (${DOW[dw]})</h3>
+    ${rows}
+    <div class="pick" data-id="${RELIEF}" data-hard="0" data-warn="0">
+      <span class="badge" style="background:#64748b">Relief</span>
+      <span class="status ok">${current === RELIEF ? 'current' : 'always available'}</span>
+    </div>
+    <div class="row mt" style="justify-content:flex-end"><button id="raCancel">Cancel</button></div>
+  `);
+  modal.querySelector('#raCancel').addEventListener('click', closeModal);
+  modal.querySelectorAll('.pick').forEach(el => el.addEventListener('click', () => {
+    const id = el.dataset.id;
+    if (id === current) { closeModal(); return; }
+    if (+el.dataset.hard > 0 && !confirm('This breaks a hard rule. Override anyway?')) return;
+    if (+el.dataset.warn > 0 && +el.dataset.hard === 0 && !confirm('This goes against a preference. Assign anyway?')) return;
+    md.schedule[day + '|' + shiftId] = id;
+    save(); closeModal(); renderSchedule();
+  }));
+}
+
+/* ---------- modal helpers ---------- */
+function showModal(innerHtml) {
+  const root = $('modalRoot');
+  root.innerHTML = `<div class="overlay"><div class="modal">${innerHtml}</div></div>`;
+  root.querySelector('.overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+  return root.querySelector('.modal');
+}
+function closeModal() { $('modalRoot').innerHTML = ''; }
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+/* ---------- wiring ---------- */
+function initUI() {
+  load();
+  renderAll();
+
+  $('hospitalSelect').addEventListener('change', e => { state.currentId = e.target.value; save(); renderAll(); });
+  $('addHospitalBtn').addEventListener('click', () => {
+    const name = prompt('New hospital name:');
+    if (!name) return;
+    const nh = { id: uid(), name, shifts: makeShifts(), rules: { overnightSoftCap: 4, defaultClusterMax: 4 }, doctors: [], months: {} };
+    state.hospitals[nh.id] = nh; state.currentId = nh.id; save(); renderAll();
+    switchTab('setup');
+  });
+  $('deleteHospitalBtn').addEventListener('click', () => {
+    const h = hosp();
+    if (!confirm(`Delete "${h.name}" and all of its saved months? Consider exporting a backup first.`)) return;
+    delete state.hospitals[h.id];
+    if (!Object.keys(state.hospitals).length) { const b = boulderSeed(); b.name = 'New hospital'; b.doctors = []; state.hospitals[b.id] = b; }
+    state.currentId = Object.keys(state.hospitals)[0]; save(); renderAll();
+  });
+  $('exportBtn').addEventListener('click', () => {
+    const h = hosp();
+    const blob = new Blob([JSON.stringify(h, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = (h.name || 'hospital').replace(/\W+/g, '-').toLowerCase() + '-scheduler-backup.json';
+    a.click(); URL.revokeObjectURL(a.href);
+  });
+  $('importBtn').addEventListener('click', () => $('importFile').click());
+  $('importFile').addEventListener('change', e => {
+    const f = e.target.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const h = JSON.parse(r.result);
+        if (!h.name || !h.doctors || !h.shifts) throw new Error('bad file');
+        h.id = uid();
+        state.hospitals[h.id] = h; state.currentId = h.id; save(); renderAll();
+      } catch (err) { alert('That file doesn\'t look like a scheduler backup.'); }
+      e.target.value = '';
+    };
+    r.readAsText(f);
+  });
+
+  $('hospName').addEventListener('change', e => { hosp().name = e.target.value; save(); renderHospitalSelect(); });
+  $('ruleOvernightCap').addEventListener('change', e => { hosp().rules.overnightSoftCap = +e.target.value || 0; save(); });
+  $('ruleClusterMax').addEventListener('change', e => { hosp().rules.defaultClusterMax = +e.target.value || 4; save(); });
+
+  $('addShiftBtn').addEventListener('click', () => {
+    hosp().shifts.push({ id: uid(), name: 'New shift', time: '', weekendTime: '', blocksNext: [], isOvernight: false });
+    save(); renderSetup();
+  });
+  $('addDocBtn').addEventListener('click', () => {
+    const initials = prompt('Doctor initials:');
+    if (!initials) return;
+    hosp().doctors.push({ id: uid(), initials: initials.trim().toUpperCase(), target: 10, cap: '', blocks: [], preferDays: [], clusterMax: '', clusterIdeal: '', altWeekendsOff: false });
+    save(); renderSetup(); renderMonth();
+  });
+
+  $('monthPick').addEventListener('change', e => { state.currentMonth = e.target.value; save(); renderMonth(); renderSchedule(); });
+  $('generateBtn').addEventListener('click', () => {
+    const md = monthData(true);
+    if (md.schedule && !confirm('Replace the existing schedule for this month? Manual edits will be lost.')) return;
+    md.schedule = generateSchedule(hosp(), state.currentMonth);
+    save(); renderMonth(); renderSchedule(); switchTab('schedule');
+  });
+  $('printBtn').addEventListener('click', () => window.print());
+
+  document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  ['setup', 'month', 'schedule'].forEach(t => $('tab-' + t).classList.toggle('hidden', t !== name));
+}
+
+if (typeof document !== 'undefined' && typeof localStorage !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', initUI);
+}
+</script>
+</body>
+</html>
